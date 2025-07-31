@@ -8,12 +8,18 @@ tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
 
 def generate_answer(context, question):
-    prompt = f"Answer the question based on the context.\nContext: {context}\nQuestion: {question}"
+    prompt = (
+        "You are a helpful AI assistant. Use the provided research paper context to answer the question.\n\n"
+        f"Context:\n{context}\n\n"
+        f"Question:\n{question}\n\n"
+        "Answer:"
+    )
     inputs = tokenizer(prompt, return_tensors="pt", truncation=True)
     with torch.no_grad():
-        outputs = model.generate(**inputs, max_new_tokens=200)
+        outputs = model.generate(**inputs, max_new_tokens=300)
     answer = tokenizer.decode(outputs[0], skip_special_tokens=True)
     return answer
+
 
 # Gradio UI
 iface = gr.Interface(
