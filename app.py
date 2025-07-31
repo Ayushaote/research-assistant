@@ -7,19 +7,19 @@ tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
 
 def generate_answer(context, question, mode):
-    instruction = {
-        "Summarize": "Summarize the following context in simple terms.",
-        "Explain": "Explain the following research content in detail.",
-        "Extract Contributions": "List the main contributions from the research paper.",
-        "Extract Limitations": "List any limitations or challenges mentioned in the paper."
-    }.get(mode, "Answer the question based on the context.")
+    if mode == "Summarize":
+        prompt = f"Summarize the following research content:\n\n{context}"
+    elif mode == "Explain":
+        prompt = f"Explain the key ideas in this passage for better understanding:\n\n{context}\n\nExplanation:"
+    elif mode == "Q&A":
+        prompt = f"Context:\n{context}\n\nQuestion: {question}\nAnswer:"
+    else:
+        prompt = f"{context}\n\n{question}"
 
-    prompt = f"{instruction}\n\nContext:\n{context}\n\nQuestion:\n{question}\n\nAnswer:"
+    inputs = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=768)
+    output = model.generate(**inputs, max_new_tokens=512)
+    return tokenizer.decode(output[0], skip_special_tokens=True)
 
-    inputs = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=1024)
-    with torch.no_grad():
-        outputs = model.generate(**inputs, max_new_tokens=512)
-    return tokenizer.decode(outputs[0], skip_special_tokens=True)
 
 with gr.Blocks() as demo:
     gr.Markdown("## 🤖 LLM-Powered Research Assistant")
