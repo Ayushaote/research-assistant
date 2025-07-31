@@ -1,20 +1,31 @@
 import gradio as gr
-from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+import torch
 
 # Load model and tokenizer
-model_name = "google/flan-t5-large"
-
-
+model_name = "google/flan-t5-base"  # or any other flan-t5 variant
 tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = AutoModelForCausalLM.from_pretrained(model_name, device_map="auto")
+model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
 
-# Create pipeline
-pipe = pipeline("text-generation", model=model, tokenizer=tokenizer)
+def generate_answer(context, question):
+    prompt = f"Answer the question based on the context.\nContext: {context}\nQuestion: {question}"
+    inputs = tokenizer(prompt, return_tensors="pt", truncation=True)
+    with torch.no_grad():
+        outputs = model.generate(**inputs, max_new_tokens=200)
+    answer = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    return answer
 
-def generate_response(prompt):
-    output = pipe(prompt, max_new_tokens=100, do_sample=True, temperature=0.7)
-    return output[0]["generated_text"]
+# Gradio UI
+iface = gr.Interface(
+    fn=generate_answer,
+    inputs=[
+        gr.Textbox(label="Context (Paste research paper content or abstract)", lines=10, placeholder="Paste your research paper content here..."),
+        gr.Textbox(label="Question", placeholder="e.g., What is the main contribution?")
+    ],
+    outputs=gr.Textbox(label="Answer"),
+    title="LLM-Powered Research Assistant",
+    description="Summarize or extract insights from research papers using an open-source FLAN-T5 model"
+)
 
-# Gradio Interface
-demo = gr.Interface(fn=generate_response, inputs="text", outputs="text", title="LLM Research Assistant")
-demo.launch()
+if __name__ == "__main__":
+    iface.launch()
