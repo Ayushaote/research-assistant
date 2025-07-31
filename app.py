@@ -2,7 +2,8 @@ import gradio as gr
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 
 # Load model and tokenizer
-model_name = "mistralai/Mistral-7B-Instruct-v0.2"
+model_name = "HuggingFaceH4/zephyr-7b-beta"
+
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForCausalLM.from_pretrained(model_name, device_map="auto")
 
