@@ -2,7 +2,8 @@ import gradio as gr
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 
 # Load model and tokenizer
-model_name = "HuggingFaceH4/zephyr-7b-beta"
+model_name = "google/flan-t5-large"
+
 
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForCausalLM.from_pretrained(model_name, device_map="auto")
