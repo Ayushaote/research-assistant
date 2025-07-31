@@ -1,5 +1,4 @@
 import gradio as gr
-import torch
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 
 model_name = "MBZUAI/LaMini-Flan-T5-783M"
@@ -10,7 +9,7 @@ def generate_answer(context, question, mode):
     if mode == "Summarize":
         prompt = f"Summarize the following research content:\n\n{context}"
     elif mode == "Explain":
-        prompt = f"Explain the key ideas in this passage for better understanding:\n\n{context}\n\nExplanation:"
+        prompt = f"Explain the key ideas in this passage:\n\n{context}\n\nExplanation:"
     elif mode == "Q&A":
         prompt = f"Context:\n{context}\n\nQuestion: {question}\nAnswer:"
     else:
@@ -20,20 +19,23 @@ def generate_answer(context, question, mode):
     output = model.generate(**inputs, max_new_tokens=512)
     return tokenizer.decode(output[0], skip_special_tokens=True)
 
+def clear_inputs():
+    return "", "", "Summarize", ""
 
 with gr.Blocks() as demo:
-    gr.Markdown("## 🤖 LLM-Powered Research Assistant")
+    gr.Markdown("# 🤖 LLM Research Assistant")
     with gr.Row():
         with gr.Column():
-            context = gr.Textbox(lines=20, label="Context (Paste research paper content or abstract)")
-            question = gr.Textbox(label="Question", placeholder="e.g., Explain this intro / What is the main idea?")
-            mode = gr.Dropdown(choices=["Explain", "Summarize", "Extract Contributions", "Extract Limitations"], value="Explain", label="Mode")
-            submit_btn = gr.Button("Submit")
+            context_input = gr.Textbox(lines=15, label="📄 Paper Abstract / Section / Context")
+            question_input = gr.Textbox(lines=2, label="❓ Question (Optional for Summarize/Explain)")
+            mode_input = gr.Radio(choices=["Summarize", "Explain", "Q&A"], value="Summarize", label="Select Mode")
+            submit_btn = gr.Button("🚀 Generate")
+            clear_btn = gr.Button("Clear")
         with gr.Column():
-            output = gr.Textbox(label="Answer")
-            share = gr.Button("Share via Link")
+            output_text = gr.Textbox(label="🧠 Output", lines=20)
 
-    submit_btn.click(generate_answer, inputs=[context, question, mode], outputs=output)
-    share.click(generate_answer, inputs=[context, question, mode], outputs=output)
+    submit_btn.click(fn=generate_answer, inputs=[context_input, question_input, mode_input], outputs=output_text)
+    clear_btn.click(fn=clear_inputs, outputs=[context_input, question_input, mode_input, output_text])
 
-demo.launch()
+if __name__ == "__main__":
+    demo.launch()
