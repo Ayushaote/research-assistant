@@ -1,1 +1,5 @@
-"transformers\ntorch\nsentencepiece\ngradio" 
+gradio
+transformers
+torch
+sentencepiece
+
